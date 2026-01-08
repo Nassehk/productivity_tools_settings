@@ -1,0 +1,109 @@
+
+##### Core ergonomics #####
+
+# Prefix: keep default, and add screen-style duplicate (optional)
+set -g prefix C-b
+bind C-a set -g prefix C-a \; unbind C-b \; set -g status-left '#[bold]Prefix: C-a'
+
+# Easy reload
+bind r source-file ~/.tmux.conf \; display-message "tmux.conf reloaded"
+
+# Mouse: click to select/resize panes, scroll in copy-mode
+set -g mouse on
+
+# Start windows/panes at 1 (nicer for key hits)
+set -g base-index 1
+set -g pane-base-index 1
+
+# Resizing (Alt + arrows)
+bind -n M-Left  resize-pane -L 5
+bind -n M-Right resize-pane -R 5
+bind -n M-Up    resize-pane -U 3
+bind -n M-Down  resize-pane -D 3
+
+# Pane navigation (vim-style; requires tmux 2.4+)
+bind -r h select-pane -L
+bind -r j select-pane -D
+bind -r k select-pane -U
+bind -r l select-pane -R
+
+# Split keeping current dir
+bind | split-window -h -c "#{pane_current_path}"
+bind - split-window -v -c "#{pane_current_path}"
+
+# Toggle zoom
+bind z resize-pane -Z
+
+##### Clipboard & copy-mode #####
+
+# Use system clipboard when possible
+# macOS: requires `reattach-to-user-namespace` only on older macOS versions
+# Linux: ensure `xclip` or `wl-copy` is installed (Wayland)
+set -g set-clipboard on
+
+# Vi-style copy mode
+setw -g mode-keys vi
+bind -T copy-mode-vi y send-keys -X copy-selection-and-cancel
+bind -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-selection-no-clear
+
+##### Status bar #####
+
+set -g status-interval 2
+set -g status-justify centre
+set -g status-style "bg=colour236,fg=colour250"
+
+# Left: Session name
+set -g status-left-length 40
+set -g status-left "#[bold,fg=colour39]#S #[default]"
+
+# Right: host, time
+set -g status-right-length 80
+set -g status-right "#[fg=colour245]#(whoami)@#H #[fg=colour39]%Y-%m-%d %H:%M #[default]"
+
+# Window list formatting
+set -g window-status-format       "#[fg=colour244]#I:#W#[default]"
+set -g window-status-current-format "#[bold,fg=colour45]#I:#W#[default]"
+set -g window-status-bell-style "fg=colour196,bg=colour236,bold"
+
+##### Pane titles (a.k.a. “pane names”) #####
+
+# Show titles in borders (top). Uses your custom pane_title or falls back to current command.
+set -g pane-border-status top
+set -g pane-border-format '#{?pane_active,#[bold],}#[fg=colour39]#P #[default]#{?pane_title,#{pane_title},#{pane_current_command}}'
+
+# Bind to rename the current pane quickly
+bind . command-prompt -p "(rename-pane)" -I "#T" "select-pane -T '%%'"
+
+# Prevent external programs and tmux from overwriting your titles
+set -g allow-rename off
+set -g automatic-rename off
+# Add this file to home directory of the user. remove the ".linux" from the end of the file name.
+##### Sessions & windows #####
+
+# Quick session rename
+bind $ command-prompt -p "(rename-session)" "rename-session '%%'"
+
+# Move windows
+bind H swap-window -t -1
+bind L swap-window -t +1
+
+##### Quality-of-life #####
+
+# Faster key repeat, fewer delays
+set -g escape-time 0
+
+# Silence the visual bell
+set -g visual-activity on
+set -g visual-bell off
+
+##### Plugins via TPM #####
+
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-sensible'     # sane defaults
+set -g @plugin 'tmux-plugins/tmux-yank'         # better yank to clipboard
+set -g @plugin 'tmux-plugins/tmux-resurrect'    # save/restore sessions
+set -g @plugin 'tmux-plugins/tmux-continuum'    # auto resurrect
+
+# Initialize TPM (keep at bottom)
+run '~/.tmux/plugins/tpm/tpm'
+
